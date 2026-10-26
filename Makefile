@@ -18,7 +18,7 @@ test:
 
 build-docker:
 	@echo "==> Building container $(IMAGE_NAME):$(TAG)..."
-	docker build -t $(IMAGE_NAME):$(TAG) ./app
+	docker build --network=host -t $(IMAGE_NAME):$(TAG) ./app
 
 validate-manifests:
 	@echo "==> Validating Kubernetes manifests..."
