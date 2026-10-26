@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sample-app-staging
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: cloudicraft-platform
+  source:
+    repoURL: "https://github.com/cloudicraft/gitops-k8s-delivery-pipeline.git"
+    targetRevision: HEAD
+    path: gitops/kustomize/overlays/staging
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: sample-app-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

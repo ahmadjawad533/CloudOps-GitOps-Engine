@@ -1,0 +1,48 @@
+name: Kubernetes - Kustomize Build & Schema Validation
+
+on:
+  push:
+    paths:
+      - 'gitops/**'
+      - '.github/workflows/k8s-lint.yml'
+  pull_request:
+    paths:
+      - 'gitops/**'
+
+jobs:
+  validate:
+    name: Kubeconform & Kustomize Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Kustomize
+        uses: imranismail/setup-kustomize@v2
+        with:
+          kustomize-version: "5.3.0"
+
+      - name: Install Kubeconform
+        run: |
+          curl -sL https://github.com/yannh/kubeconform/releases/download/v0.6.4/kubeconform-linux-amd64.tar.gz | tar xz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Validate Base Manifests
+        run: |
+          echo "Building Base manifests..."
+          kustomize build gitops/kustomize/base | kubeconform -strict -summary -kubernetes-version 1.29.0
+
+      - name: Validate Dev Overlay
+        run: |
+          echo "Building Dev overlay..."
+          kustomize build gitops/kustomize/overlays/dev | kubeconform -strict -summary -kubernetes-version 1.29.0
+
+      - name: Validate Staging Overlay
+        run: |
+          echo "Building Staging overlay..."
+          kustomize build gitops/kustomize/overlays/staging | kubeconform -strict -summary -kubernetes-version 1.29.0
+
+      - name: Validate Production Overlay
+        run: |
+          echo "Building Production overlay..."
+          kustomize build gitops/kustomize/overlays/production | kubeconform -strict -summary -kubernetes-version 1.29.0

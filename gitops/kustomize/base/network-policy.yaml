@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sample-app-netpol
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sample-app
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from NGINX ingress controller or same namespace
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow outbound HTTPS for external APIs / Cloud services
+    - ports:
+        - protocol: TCP
+          port: 443

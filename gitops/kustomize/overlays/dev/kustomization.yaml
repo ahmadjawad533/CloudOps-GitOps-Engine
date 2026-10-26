@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: sample-app-dev
+
+resources:
+  - ../../base
+
+namePrefix: dev-
+
+patches:
+  - path: patches/configmap-patch.yaml
+  - path: patches/deployment-patch.yaml
+
+images:
+  - name: ghcr.io/cloudicraft/gitops-sample-service
+    newTag: dev-latest

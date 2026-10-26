@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: cloudicraft-platform
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: "CloudiCraft platform workloads and microservices"
+  sourceRepos:
+    - "*"
+  destinations:
+    - namespace: "sample-app-*"
+      server: "https://kubernetes.default.svc"
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

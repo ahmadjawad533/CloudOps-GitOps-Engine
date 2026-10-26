@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sample-app-production
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: cloudicraft-platform
+  source:
+    repoURL: "https://github.com/cloudicraft/gitops-k8s-delivery-pipeline.git"
+    targetRevision: main
+    path: gitops/kustomize/overlays/production
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: sample-app-production
+  # Production uses explicit manual sync gates or automated with strict health verification
+  syncPolicy:
+    automated:
+      prune: false     # Prevent unexpected auto-deletion in production
+      selfHeal: true   # Auto-heal cluster drift back to Git state
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m

@@ -1,0 +1,40 @@
+name: Security - Vulnerability & SBOM Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 4 * * 1' # Every Monday at 04:00 UTC
+
+jobs:
+  trivy:
+    name: Trivy Filesystem & Container Security Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build local test image
+        run: |
+          docker build -t local/security-test:latest ./app
+
+      - name: Run Trivy Image Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'local/security-test:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Run Trivy Kubernetes Manifest Configuration Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-dir: './gitops/kustomize'
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
